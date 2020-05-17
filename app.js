@@ -663,7 +663,7 @@ function announceInvalidMove() {
         console.log(colors.bgGray.brightWhite('                             B L A C K                             '));
     }
     //Now play it using text to speech library
-    tts.say('Invalid Move');
+    tts.say('Illegal Move');
 }
 
 function start() {
@@ -861,6 +861,9 @@ function connectToBoardEvents() {
     dgtBoard.on('invalidAdjust', async (move) => {
         // Todo: Send a message showing the wrong adjustment made
         if (verbose) console.log(colors.dim.grey(`connectToBoardEvents - Received invalidAdjust event from Board: ${JSON.stringify(move)}`));
+        //Inform user
+        tts.say('Incorrect, move was');
+        await sleep(1000);
         //Repeat last game state announcement
         var gameState = gameStateMap.get(currentGameId);
         var lastMove = getLastMove(currentGameId);
