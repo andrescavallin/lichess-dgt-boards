@@ -34,7 +34,7 @@ const lastPosition = new Chess() // A Chess.js object to store the last position
 const boardPosition = new Chess() // A Chess.js object to store the current position on the DGT LiveChes
 
 var moveObject;
-var SANMove; 
+var SANMove;
 const connection = new WebSocket(liveChessURL)
 //Starting position FEN 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 //var startFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
@@ -46,7 +46,7 @@ class BoardManager extends EventEmitter {
     constructor() {
         super();
 
-        
+
 
         connection.onopen = () => {
             if (verbose) console.log(colors.dim.magenta("Websocket onopen: Connection to LiveChess was sucessful"))
@@ -81,27 +81,48 @@ class BoardManager extends EventEmitter {
             }
             else if (message.response == 'feed' && !(!message.param.san)) {
                 try {
+
+                    //Received move from board
+                    //Adjust local chess.js board with received move
+                    //if valid move on local chess.js
+                        //if received move.color == this.currentGameColor
+                            //This is a valid new move send to lichess
+                        //else
+                            //This is an adjustment
+                            //If adjustment matches last move on lichess board
+                                //TADA good adjustment event
+                            //else
+                                //bad adjustment event
+                                //undo move on local chess.js
+                    //else
+                        //This is an invalid move
+                        //if local chess.js last move.color is same as this.currentColor
+                            //Illigal adjustment
+                        //else
+                            //Invalid move from player
+
                     var dgtChess = new Chess(this.board_lichess.fen())
                     if (verbose) console.log(colors.dim.magenta('onmessage - san: ' + message.param.san))
-                    SANMove = message.param.san[message.param.san.length-1]
+                    SANMove = message.param.san[message.param.san.length - 1]
                     moveObject = dgtChess.move(SANMove)
-                    this.emit('move', moveObject)
-                }
-                catch (err) {
-                    console.error(err.message)
-                    if(moveObject.color == this.currentGameColor)
-                        this.emit('invalidMove', err)
-                    else if(this.board_lichess.history()[this.board_lichess.history().length - 1] == SANMove) { //If this doesn't work, store moves from Lichess to compare
-                        if(hasMadeInvalidAdjustment) {
+                    if (moveObject.color == this.currentGameColor) //statement giving error
+                        this.emit('move', moveObject)
+                    else if (this.board_lichess.history()[this.board_lichess.history().length - 1] == SANMove) { //If this doesn't work, store moves from Lichess to compare
+                        if (hasMadeInvalidAdjustment) {
                             this.setUp(this.board_lichess)
                             hasMadeInvalidAdjustment = false;
                         }
                         this.emit('adjust')
-                     }
-                    else if(!hasMadeInvalidAdjustment) {
+                    }
+                    else if (!hasMadeInvalidAdjustment) {
                         hasMadeInvalidAdjustment = true;
                         this.emit('invalidAdjust', moveObject)
                     }
+                }
+                catch (err) {
+                    console.error(err.message)
+                    this.emit('invalidMove', err)
+
 
 
                 }
@@ -117,15 +138,16 @@ class BoardManager extends EventEmitter {
     async setUp(chess) {
         var fen = await chess.fen()
         var setupMessage = {
-            "id":3,
-            "call":"call",
-            "param":{
-                "id":1,
-                "method":"setup",
-                "param":{
+            "id": 3,
+            "call": "call",
+            "param": {
+                "id": 1,
+                "method": "setup",
+                "param": {
                     "fen": fen
                 }
-            }}
+            }
+        }
         if (verbose) console.log(colors.dim.magenta("setUp -: " + JSON.stringify(setupMessage)))
         connection.send(JSON.stringify(setupMessage))
     }
