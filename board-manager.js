@@ -87,13 +87,16 @@ class BoardManager extends EventEmitter {
                     //if valid move on local chess.js
                         //if received move.color == this.currentGameColor
                             //This is a valid new move send to lichess
+                            this.emit('move', moveObject) //moveObject must be in chess.js format
                         //else
                             //This is an adjustment
                             //If adjustment matches last move on lichess board
                                 //TADA good adjustment event
+                                this.emit('adjust') //no moveObject required
                             //else
+                                //TODO undo move on local chess.js
                                 //bad adjustment event
-                                //undo move on local chess.js
+                                this.emit('invalidAdjust', moveObject) //moveObject is optional and must be in chess.js format       
                     //else
                         //This is an invalid move
                         //if local chess.js last move.color is same as this.currentColor
