@@ -798,7 +798,7 @@ function lichessFormattedMove(boardMove) {
             return boardMove.from + boardMove.to;
         }
         else {
-            //TODO: Veify if opponent's piece is adjusted properly
+            //TODO: Veify if opponent's piece is adjusted properly COMPLETED. Verification process is in boardManager
             
             console.error('lichessFormattedMove - Error. Received move is for the wrong color. Expected color is '.red + currentGameColor);
             return '';
@@ -829,6 +829,16 @@ function connectToBoardEvents() {
         if (verbose) console.log(colors.dim.grey(`connectToBoardEvents - Received invalidMove event from Board: ${JSON.stringify(move)}`));
         // TODO Notify invalid move
     });
+
+    dgtBoard.on('adjust', async () => {
+        // Todo: Send a message to make sure the right adjustment was made
+        console.log('Valid adjustment was made')
+    })
+
+    dgtBoard.on('invalidAdjust', async (move) => {
+        // Todo: Send a message showing the wrong adjustment made
+        console.log('Invalid adjustment was made')
+    })
 }
 
 /**

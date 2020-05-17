@@ -41,7 +41,7 @@ const connection = new WebSocket(liveChessURL)
 //var boardFEN = 'rnbqkbnr/pppp1ppp/8/4p3/8/8/PPPPPPPP/RNBQKBNR'
 //var turn = 'white';
 //var playerColor = 'white'; currentGameColor
-
+var hasMadeInvalidAdjustment
 class BoardManager extends EventEmitter {
     constructor() {
         super();
@@ -84,13 +84,26 @@ class BoardManager extends EventEmitter {
                     var dgtChess = new Chess(this.board_lichess.fen())
                     if (verbose) console.log(colors.dim.magenta('onmessage - san: ' + message.param.san))
                     SANMove = message.param.san[message.param.san.length-1]
-
                     moveObject = dgtChess.move(SANMove)
                     this.emit('move', moveObject)
                 }
                 catch (err) {
                     console.error(err.message)
-                    this.emit('invalidMove', err)
+                    if(moveObject.color == this.currentGameColor)
+                        this.emit('invalidMove', err)
+                    else if(this.board_lichess.history()[this.board_lichess.history().length - 1] == SANMove) { //If this doesn't work, store moves from Lichess to compare
+                        if(hasMadeInvalidAdjustment) {
+                            this.setUp(this.board_lichess)
+                            hasMadeInvalidAdjustment = false;
+                        }
+                        this.emit('adjust')
+                     }
+                    else if(!hasMadeInvalidAdjustment) {
+                        hasMadeInvalidAdjustment = true;
+                        this.emit('invalidAdjust', moveObject)
+                    }
+
+
                 }
 
 
