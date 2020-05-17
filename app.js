@@ -354,33 +354,38 @@ function connectToGameStream(gameId) {
  * @param {string} move 
  */
 function sendMove(gameId, move) {
-    //Automatically decline draws when making a move
-    var url = url = `${baseURL}/api/board/game/${gameId}/move/${move}?offeringDraw=false`
-    //Log intention
-    if (verbose) console.log(colors.dim.grey('sendMove - About to call ' + url));
-    axios({
-        method: "post",
-        url: url,
-        headers: { 'Authorization': 'Bearer ' + personalToken }
-    })
-        .then(function (response) {
-            try {
-                if (response.status == 200 || response.status == 201) {
-                    //Move sucessfully sent
-                    if (verbose) console.log(colors.dim.grey('sendMove - Move sucessfully sent.'));
-                }
-                else {
-                    console.error('sendMove - Failed to send move. '.red + response.data.error);
-                }
-
-            }
-            catch (error) {
-                console.error('sendMove - Unexpected error. '.red + error);
-            }
+    if (move.length > 1) {
+        //Automatically decline draws when making a move
+        var url = url = `${baseURL}/api/board/game/${gameId}/move/${move}?offeringDraw=false`
+        //Log intention
+        if (verbose) console.log(colors.dim.grey('sendMove - About to call ' + url));
+        axios({
+            method: "post",
+            url: url,
+            headers: { 'Authorization': 'Bearer ' + personalToken }
         })
-        .catch(function (error) {
-            console.error('sendMove - Error. '.red + error.message);
-        });
+            .then(function (response) {
+                try {
+                    if (response.status == 200 || response.status == 201) {
+                        //Move sucessfully sent
+                        if (verbose) console.log(colors.dim.grey('sendMove - Move sucessfully sent.'));
+                    }
+                    else {
+                        console.error('sendMove - Failed to send move. '.red + response.data.error);
+                    }
+
+                }
+                catch (error) {
+                    console.error('sendMove - Unexpected error. '.red + error);
+                }
+            })
+            .catch(function (error) {
+                console.error('sendMove - Error. '.red + error.message);
+            });
+    }
+    else {
+        if (verbose) console.log(colors.dim.grey(`sendMove - Received move: "${move}" will not be sent to lichess `));
+    }
 }
 
 /**
@@ -644,6 +649,23 @@ function announceWinner(winner, status, message) {
     tts.say(message);
 }
 
+function announceInvalidMove() {
+    if (currentGameColor == 'white') {
+        console.log(colors.bgWhite.black(
+            figlet.textSync('  [ X X ]  ', { font: 'univers', horizontalLayout: 'full' })
+        ));
+        console.log(colors.bgWhite.black('                             W H I T E                             '));
+    }
+    else {
+        console.log(colors.bgGray.brightWhite(
+            figlet.textSync('  [ X X ]  ', { font: 'univers', horizontalLayout: 'full' })
+        ));
+        console.log(colors.bgGray.brightWhite('                             B L A C K                             '));
+    }
+    //Now play it using text to speech library
+    tts.say('Invalid Move');
+}
+
 function start() {
     console.clear();
     console.log("      ,....,            ".blue.bold + "          ▄████▄   ██░ ██ ▓█████   ██████   ██████     ".red);
@@ -798,8 +820,8 @@ function lichessFormattedMove(boardMove) {
             return boardMove.from + boardMove.to;
         }
         else {
-            //TODO: Veify if opponent's piece is adjusted properly
-            
+            //TODO: Veify if opponent's piece is adjusted properly COMPLETED. Verification process is in boardManager
+
             console.error('lichessFormattedMove - Error. Received move is for the wrong color. Expected color is '.red + currentGameColor);
             return '';
         }
@@ -824,11 +846,26 @@ function connectToBoardEvents() {
         await validateAndSendBoardMove(move);
     });
 
-    dgtBoard.on('invalidMove', move => {
+    dgtBoard.on('invalidMove', async () => {
         // Outputs : Received an invalid move. Notify user.
-        if (verbose) console.log(colors.dim.grey(`connectToBoardEvents - Received invalidMove event from Board: ${JSON.stringify(move)}`));
-        // TODO Notify invalid move
+        if (verbose) console.log(colors.dim.grey(`connectToBoardEvents - Received invalidMove event from Board`));
+        // Notify about invalid move.
+        announceInvalidMove();
     });
+
+    dgtBoard.on('adjust', async () => {
+        // Todo: Send a message to make sure the right adjustment was made
+        if (verbose) console.log(colors.dim.grey(`connectToBoardEvents - Received adjust event from Board`));
+    })
+
+    dgtBoard.on('invalidAdjust', async (move) => {
+        // Todo: Send a message showing the wrong adjustment made
+        if (verbose) console.log(colors.dim.grey(`connectToBoardEvents - Received invalidAdjust event from Board: ${JSON.stringify(move)}`));
+        //Repeat last game state announcement
+        var gameState = gameStateMap.get(currentGameId);
+        var lastMove = getLastMove(currentGameId);
+        announcePlay(lastMove, gameState.wtime, gameState.btime);
+    })
 }
 
 /**

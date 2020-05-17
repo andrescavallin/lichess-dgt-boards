@@ -1,0 +1,23 @@
+TODO:
+What happens if the games reconnect and this move is not sent?
+Notify the player when adjusts or an illegal move takes place
+Allow the board and companion web server to detect certain actions to resign, challenge someone, find a game, rematch, offer draw, propose a takeback, chat, and voicechat
+Allow computer analysis with the board
+Export pgn from games played with the DGT board so they can be analyzed by lichess or chess.com
+
+Companion app:
+
+-In_Game
+Show time
+Show last move played
+show an x or check mark as well as toggable audio for adjusts
+Buttons underneath timer to resign, offer draw, propose a takeback, and voice chat
+Show chat
+If multiple games are in play, show buttons with positions from all games, sorrounded by players and time control icon to allow player to swap between games
+
+-Home
+Table with various time controls chosen by player, either searches for a game in the lobby or in quick search if the time control matches
+View friends who are online
+Message + show chat with the person being messaged
+Challenge
+Go to games in play
