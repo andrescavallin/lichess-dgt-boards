@@ -30,18 +30,12 @@ var boards = []; //An array to store all the board recognized by DGT LiveChess
 //subscription stores the information about the board being connected, most importantly the serialnr
 var subscription = { "id": 2, "call": "subscribe", "param": { "feed": "eboardevent", "id": 1, "param": { "serialnr": "" } } };
 const letterNotation = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']; //Array to easy get the letter for a square
-const lastPosition = new Chess() // A Chess.js object to store the last position received from DGT LiveChess
-const boardPosition = new Chess() // A Chess.js object to store the current position on the DGT LiveChes
 
 var moveObject;
 var SANMove;
+var localBoard = new Chess()
 const connection = new WebSocket(liveChessURL)
-//Starting position FEN 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-//var startFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
-//var boardFEN = 'rnbqkbnr/pppp1ppp/8/4p3/8/8/PPPPPPPP/RNBQKBNR'
-//var turn = 'white';
-//var playerColor = 'white'; currentGameColor
-var hasMadeInvalidAdjustment
+//var hasMadeInvalidAdjustment
 class BoardManager extends EventEmitter {
     constructor() {
         super();
@@ -80,61 +74,56 @@ class BoardManager extends EventEmitter {
                 //this.setUp(newChess);
             }
             else if (message.response == 'feed' && !(!message.param.san)) {
-                try {
-
-                    //Received move from board
-                    //Adjust local chess.js board with received move
-                    //if valid move on local chess.js
-                        //if received move.color == this.currentGameColor
-                            //This is a valid new move send to lichess
-                            this.emit('move', moveObject) //moveObject must be in chess.js format
-                        //else
-                            //This is an adjustment
-                            //If adjustment matches last move on lichess board
-                                //TADA good adjustment event
-                                this.emit('adjust') //no moveObject required
-                            //else
-                                //TODO undo move on local chess.js
-                                //bad adjustment event
-                                this.emit('invalidAdjust', moveObject) //moveObject is optional and must be in chess.js format       
-                    //else
-                        //This is an invalid move
-                        //if local chess.js last move.color is same as this.currentColor
-                            //Illigal adjustment
-                        //else
-                            //Invalid move from player
-
-                    var dgtChess = new Chess(this.board_lichess.fen())
-                    if (verbose) console.log(colors.dim.magenta('onmessage - san: ' + message.param.san))
-                    SANMove = message.param.san[message.param.san.length - 1]
-                    moveObject = dgtChess.move(SANMove)
-                    if (moveObject.color == this.currentGameColor) //statement giving error
-                        this.emit('move', moveObject)
-                    else if (this.board_lichess.history()[this.board_lichess.history().length - 1] == SANMove) { //If this doesn't work, store moves from Lichess to compare
-                        if (hasMadeInvalidAdjustment) {
-                            this.setUp(this.board_lichess)
-                            hasMadeInvalidAdjustment = false;
-                        }
-                        this.emit('adjust')
+                //Received move from board
+                //Adjust local chess.js board with received move
+                if (verbose) console.log(colors.dim.magenta('onmessage - san: ' + message.param.san))
+                SANMove = message.param.san[message.param.san.length - 1]
+                moveObject = localBoard.move(SANMove)
+                //if valid move on local chess.js
+                if (!(!moveObject) && (message.param.san.length > 0)) {
+                    //if received move.color == this.currentGameColor
+                    if (moveObject.color == this.currentGameColor) {
+                        //This is a valid new move send to lichess
+                        if (verbose) console.log(colors.dim.green('Valid Move played: ' + SANMove))
+                        this.emit('move', moveObject) //moveObject must be in chess.js format
                     }
-                    else if (!hasMadeInvalidAdjustment) {
-                        hasMadeInvalidAdjustment = true;
-                        this.emit('invalidAdjust', moveObject)
+                    else if (this.board_lichess.history()[this.board_lichess.history().length - 1] == SANMove) {
+                        //This is a valid adjustment
+                        if (verbose) console.log(colors.dim.green('Valid Adjustment: ' + SANMove))
+                        this.emit('adjust') //no moveObject required
                     }
-                }
-                catch (err) {
-                    console.error(err.message)
-                    this.emit('invalidMove', err)
 
-
+                    else {
+                        //Invalid Adjustment
+                        //Setup DGT board and also initialize localBoard (or undo)
+                        localBoard.undo();
+                        //TODO Instead of undo we need to bring all the moves from lichess except the last one.
+                        //bad adjustment event
+                        if (verbose) console.error(colors.red('Invalid Adjustment was made'))
+                        this.emit('invalidAdjust', moveObject) //moveObject is optional and must be in chess.js format       
+                    }
 
                 }
-
-
+                else {
+                    //Troubleshooting in case of unknown error
+                    if (message.param.san.length == 0) {
+                        //This is fine, this was just the setup
+                        if (verbose) console.log(colors.green('No real move. This was just the setup.'))
+                    }
+                    else if (localBoard.history()[localBoard.history().length - 1] == SANMove) {
+                        //This is fine, the same last move was received
+                        if (verbose) console.log(colors.green('Move received is the same as the last moved played on localboard and DGT Board' + SANMove))
+                    }
+                    else {
+                        //The only way to have an invalid move is that move was legal on LiveChess DGT Board but it was not legal on localchess chess.js board
+                        if (verbose) console.error(colors.red('invalidMove - Position Mismatch between DGT Board and internal in memory Board . SAN: ' + SANMove));
+                        this.emit('invalidMove');
+                        console.log(localBoard.ascii());
+                    }
+                }
             }
         }
     }
-
     currentGameColor = ''; //Public instance field to store the color being played with the board
     board_lichess = new Chess(); //Public reference to the lichess board representation
 
@@ -153,6 +142,8 @@ class BoardManager extends EventEmitter {
         }
         if (verbose) console.log(colors.dim.magenta("setUp -: " + JSON.stringify(setupMessage)))
         connection.send(JSON.stringify(setupMessage))
+        //Initialize chess.js localboard
+        localBoard.load(chess.fen())
     }
 
     async boardMove(start, current) {
