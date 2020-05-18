@@ -23,17 +23,32 @@
 
 **Requirements**
 
-- Any DGT Electronic Board including Smart Board, Blue Tooth, USB and Serial Boards. [https://www.digitalgametechnology.com/index.php/products/electronic-boards]
-- LiveChess 2.2 Software installed, opened and able to see the board.
+- Any **DGT Electronic Board** including Smart Board, Blue Tooth, USB and Serial Boards [https://www.digitalgametechnology.com/index.php/products/electronic-boards]
+- **LiveChess 2.2** Software installed, opened and able to see the board 
 [http://www.livechesscloud.com/software/]
-- devDependencies
-- npm package
-- coverage
-- slack
-- downloads
-- gitter chat
-- license
-- etc.
+- A **Lichess.org** online account 
+[https://lichess.org/signup]
+- A Lichess **API Token** with the following scopes 
+[https://lichess.org/account/oauth/token]
+    - Play games with the board API
+    - Read preferences
+    - Read incoming challenges
+    - Create, accept, decline challenges
+    - Send private messages to other players
+- oAuth not currently supported, only API Token. See Above
+- **Node.js** v12.16.2 LTS or Above 
+[https://nodejs.org/]
+- A command line audio player
+    - On Mac OS X **afplay** is already present
+    - On Windows 10 get **cmdmp3**
+    [https://github.com/jimlawless/cmdmp3]
+    - On Linux or practically any OS get **mpg123**
+    [http://mpg123.org/]
+- IBM Cloud - Free **Watson Text to Speech** Account
+[https://www.ibm.com/cloud/watson-text-to-speech]
+- IBM Cloud **API Key** 
+[https://cloud.ibm.com/iam/apikeys]
+
 
 [![Build Status](http://img.shields.io/travis/badges/badgerbadgerbadger.svg?style=flat-square)](https://travis-ci.org/badges/badgerbadgerbadger) [![Dependency Status](http://img.shields.io/gemnasium/badges/badgerbadgerbadger.svg?style=flat-square)](https://gemnasium.com/badges/badgerbadgerbadger) [![Coverage Status](http://img.shields.io/coveralls/badges/badgerbadgerbadger.svg?style=flat-square)](https://coveralls.io/r/badges/badgerbadgerbadger) [![Code Climate](http://img.shields.io/codeclimate/github/badges/badgerbadgerbadger.svg?style=flat-square)](https://codeclimate.com/github/badges/badgerbadgerbadger) [![Github Issues](http://githubbadges.herokuapp.com/badges/badgerbadgerbadger/issues.svg?style=flat-square)](https://github.com/badges/badgerbadgerbadger/issues) [![Pending Pull-Requests](http://githubbadges.herokuapp.com/badges/badgerbadgerbadger/pulls.svg?style=flat-square)](https://github.com/badges/badgerbadgerbadger/pulls) [![Gem Version](http://img.shields.io/gem/v/badgerbadgerbadger.svg?style=flat-square)](https://rubygems.org/gems/badgerbadgerbadger) [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org) [![Badges](http://img.shields.io/:badges-9/9-ff6799.svg?style=flat-square)](https://github.com/badges/badgerbadgerbadger)
 
@@ -85,14 +100,24 @@
 ## Example (Optional)
 
 ```javascript
-// code away!
-
-let generateProject = project => {
-  let code = [];
-  for (let js = 0; js < project.length; js++) {
-    code.push(js);
-  }
-};
+{
+  "baseURL": "https://lichess.org",
+  "personalToken": "xxxxyyyxxxyyyxxx",
+  "verbose": true,
+  "announceAllMoves": true,
+  "voice": "Michael",
+  "availableVoices": {
+    "Allison": "en-US_AllisonV3Voice",
+    "Michael": "en-US_MichaelV3Voice",
+    "Sofia": "es-LA_SofiaV3Voice",
+    "Enrique": "es-ES_EnriqueV3Voice",
+    "Renee": "fr-FR_ReneeV3Voice",
+    "Francesca": "it-IT_FrancescaV3Voice"
+  },
+  "Watson_APIKEY": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcde-fghijklmnopq",
+  "audioFormat": "mp3",
+  "windowsAudioPlayer": "./audioplayer/cmdmp3/cmdmp3.exe"
+}
 ```
 
 ---
