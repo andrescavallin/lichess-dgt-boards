@@ -91,11 +91,16 @@ class BoardManager extends EventEmitter {
                 if (verbose) console.log(colors.dim.magenta('Webscoket - about to send the following message \n' + JSON.stringify(subscription)));
                 connection.send(JSON.stringify(subscription))
                 //Check if the board is properly connected
-                if (boards[0].state != "ACTIVE") // "NOTRESPONDING"
+                if (boards[0].state != "ACTIVE") // "NOTRESPONDING" "INACTIVE"
                     console.error(`Board with serial ${this.currentSerialnr} is not properly connected. Please fix`);
                 //Send setup with stating position
                 //const newChess = new Chess()
                 //this.setUp(newChess);
+                if (this.currentGameColor != '') {
+                    //There is a game in progress, setup the board as per lichess board
+                    if (verbose) console.log(colors.dim.magenta('There is a game in progress, calling setup...'));
+                    this.setUp(this.board_lichess);
+                }
             }
             else if (message.response == 'feed' && !(!message.param.san)) {
                 //Received move from board
@@ -162,12 +167,13 @@ class BoardManager extends EventEmitter {
                 }
             }
         }
-        //Wait until WebSocket is connected to send setup command
-        while (!this.isLiveChessConnected) {
-            await this.sleep(1000);
-        }
         if (verbose) console.log(colors.dim.magenta("setUp -: " + JSON.stringify(setupMessage)))
-        connection.send(JSON.stringify(setupMessage))
+        if (this.isLiveChessConnected) {
+            connection.send(JSON.stringify(setupMessage))
+        }
+        else {
+            console.error(colors.red("WebSocket is not open - cannot send setup command."));
+        }
         //Initialize chess.js localboard
         localBoard.load(chess.fen())
     }
