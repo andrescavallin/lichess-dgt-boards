@@ -45,6 +45,7 @@ var gameStateMap = new Map(); //A collection of key values to store the changing
 var gameConnectionMap = new Map(); //A collection of key values to store the network status of a game
 var gameChessBoardMap = new Map(); //A collection of Chess Boads representing the current board of the games
 var eventSteamStatus = { connected: false, lastEvent: time.getTime() }; //An object to store network status of the main eventStream
+const dgtBoard = new BoardManager(); //Store the board manager object
 var chatArray = [{
     "type": "chatLine",
     "username": "andrescavallin",
@@ -527,9 +528,10 @@ async function mainLoop() {
         }
         while (eventSteamStatus.connected)
         //This means event stream is not connected
-        console.warn("No conenction to event stream. Attempting re-connection. Attempt: " + attempts);
+        console.warn("No connection to event stream. Attempting re-connection. Attempt: " + attempts);
     }
-    console.error("No conenction to event stream after maximum number of attempts (" + attempts + "). Exiting application");
+    console.error("No connection to event stream after maximum number of attempts (" + attempts + "). Exiting application");
+    process.exit(0); //Success
 }
 
 /**
@@ -918,10 +920,9 @@ async function validateAndSendBoardMove(boardMove) {
  * Start the Main Loop
  */
 start();
+connectToBoardEvents();  //Connect to events from DGT Board
 getProfile();
-mainLoop();
-keyboardInputHandler();
-const dgtBoard = new BoardManager(); //Store the board manager object
-connectToBoardEvents();  //Connect to events, some events may not be moves like connect or disconnect
-//boardInputHandler(); //start monitoring moves one at a time
+mainLoop(); 
+keyboardInputHandler(); //This is to allow moves to be entered by keyboard
+//boardInputHandler(); //start monitoring moves one at a time instead of by events
 //dgtBoard.playRandom(); //Emulates a board by playing randomly

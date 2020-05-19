@@ -19,40 +19,47 @@
 > Play on <a hred="https://lichess.org/">Lichess.org</a> using your <a href="https://www.digitalgametechnology.com/index.php/products/electronic-boards">DGT Electronic Board</a> as input. Incoming moves can be played on audio devices or displayed on the screen. This code can easily be adaptaed to play with other boards.
 
 
-> The program works by connecting to Lichess via the Board API set of APIs, and to the DGT Board by opening a websocket connecting to the free LiveChess 2.2 which is the software DGT developed to broadcast torunaments. When moves are played on the board the program will detect those and send them to Lichess, and moves played on lichess by your opponent will be announced on screen and by audio, and they need to be executed on the board manually. Text to speech is provided by IBM Watson, and several languages are supported.
+> The program works by connecting to Lichess via the Board API set of APIs, and to the DGT Board by opening a websocket connecting to the free LiveChess 2.2 which is the software DGT developed to broadcast tournaments. When moves are played on the board the program will detect those and send them to Lichess, and moves played on lichess by your opponent will be announced on screen and by audio, and they need to be executed on the board manually. Text to speech is provided by IBM Watson, and several languages are supported.
 
 **Requirements**
 
-- Any **DGT Electronic Board** including Smart Board, Blue Tooth, USB and Serial Boards [https://www.digitalgametechnology.com/index.php/products/electronic-boards]
-- **LiveChess 2.2** Software installed, opened and able to see the board 
-[http://www.livechesscloud.com/software/]
-- A **Lichess.org** online account 
-[https://lichess.org/signup]
-- A Lichess **API Token** with the following scopes 
-[https://lichess.org/account/oauth/token]
-    - Play games with the board API
-    - Read preferences
-    - Read incoming challenges
-    - Create, accept, decline challenges
-    - Send private messages to other players
-- oAuth not currently supported, only API Token. See Above
-- **Node.js** v12.16.2 LTS or Above 
-[https://nodejs.org/]
-- A command line audio player
-    - On Mac OS X **afplay** is already present
-    - On Windows 10 get **cmdmp3**
-    [https://github.com/jimlawless/cmdmp3]
-    - On Linux or practically any OS get **mpg123**
-    [http://mpg123.org/]
-- IBM Cloud - Free **Watson Text to Speech** Account
-[https://www.ibm.com/cloud/watson-text-to-speech]
-- IBM Cloud **API Key** 
-[https://cloud.ibm.com/iam/apikeys]
-
+- DGT Board
+    - Any **DGT Electronic Board** including Smart Board, Blue Tooth, USB and Serial Boards [https://www.digitalgametechnology.com/index.php/products/electronic-boards]
+    - **LiveChess 2.2** Software installed, opened and able to see the board 
+    [http://www.livechesscloud.com/software/]
+- Lichess
+    - A **Lichess.org** online account 
+    [https://lichess.org/signup]
+    - A Lichess **API Token** with the following scopes 
+    [https://lichess.org/account/oauth/token]
+        - Play games with the board API
+        - Read preferences
+        - Read incoming challenges
+        - Create, accept, decline challenges
+        - Send private messages to other players
+    - oAuth not currently supported, only API Token. See Above
+- This Application
+    - **Node.js** v12.16.2 LTS or Above 
+    [https://nodejs.org/]
+    - Install all dependencies by using `>npm install` on this app folder
+    - In the future stand alone executable will be provided
+- Text To Speech
+    - Command line audio player
+        - On Mac OS X **afplay** is already present
+        - On Windows 10 get **cmdmp3**
+        [https://github.com/jimlawless/cmdmp3]
+        - On Linux or practically any OS get **mpg123**
+        [http://mpg123.org/]
+    - IBM Cloud Account
+        - IBM Cloud - Free **Watson Text to Speech** Account
+        [https://www.ibm.com/cloud/watson-text-to-speech]
+        - IBM Cloud **API Key** 
+        [https://cloud.ibm.com/iam/apikeys]
+- Companion Web App
+    - Pending/TODO a Companion Web App to see clock and Text To Speech on Mobile Phone or Tablet next to the physical DGT Board.
 
 [![Build Status](http://img.shields.io/travis/badges/badgerbadgerbadger.svg?style=flat-square)](https://travis-ci.org/badges/badgerbadgerbadger) [![Dependency Status](http://img.shields.io/gemnasium/badges/badgerbadgerbadger.svg?style=flat-square)](https://gemnasium.com/badges/badgerbadgerbadger) [![Coverage Status](http://img.shields.io/coveralls/badges/badgerbadgerbadger.svg?style=flat-square)](https://coveralls.io/r/badges/badgerbadgerbadger) [![Code Climate](http://img.shields.io/codeclimate/github/badges/badgerbadgerbadger.svg?style=flat-square)](https://codeclimate.com/github/badges/badgerbadgerbadger) [![Github Issues](http://githubbadges.herokuapp.com/badges/badgerbadgerbadger/issues.svg?style=flat-square)](https://github.com/badges/badgerbadgerbadger/issues) [![Pending Pull-Requests](http://githubbadges.herokuapp.com/badges/badgerbadgerbadger/pulls.svg?style=flat-square)](https://github.com/badges/badgerbadgerbadger/pulls) [![Gem Version](http://img.shields.io/gem/v/badgerbadgerbadger.svg?style=flat-square)](https://rubygems.org/gems/badgerbadgerbadger) [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org) [![Badges](http://img.shields.io/:badges-9/9-ff6799.svg?style=flat-square)](https://github.com/badges/badgerbadgerbadger)
 
-- For more on these wonderful ~~badgers~~ badges, refer to <a href="http://badges.github.io/badgerbadgerbadger/" target="_blank">`badgerbadgerbadger`</a>.
 
 ***INSERT ANOTHER GRAPHIC HERE***
 

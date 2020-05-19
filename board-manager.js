@@ -34,15 +34,31 @@ const letterNotation = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']; //Array to easy
 var moveObject;
 var SANMove;
 var localBoard = new Chess()
-const connection = new WebSocket(liveChessURL)
+var connection; // = new WebSocket(liveChessURL)
 //var hasMadeInvalidAdjustment
 class BoardManager extends EventEmitter {
     constructor() {
         super();
+        //Try to connect to LiveChess as soon as the object is created.
+        connection
+        //Attach to WebSocket events
+        this.connectToLiveChess();
+        //And keep monitoring connection
+        this.connectionMonitorLoop();
+    }
 
+    currentGameColor = ''; //Public instance field to store the color being played with the board
+    board_lichess = new Chess(); //Public reference to the lichess board representation
+    currentSerialnr = 0; //Public property to store the current serial number of the DGT Board in case there is more than one
+    isLiveChessConnected = false; //Used to track if a board there is a connection to DGT Live Chess
 
+    connectToLiveChess() {
+        //Open the WebSocket
+        connection = new WebSocket(liveChessURL)
 
+        //Attach Events
         connection.onopen = () => {
+            this.isLiveChessConnected = true;
             if (verbose) console.log(colors.dim.magenta("Websocket onopen: Connection to LiveChess was sucessful"))
             connection.send('{"id":1,"call":"eboards"}');
         }
@@ -50,6 +66,14 @@ class BoardManager extends EventEmitter {
         connection.onerror = error => {
             console.log(colors.dim.red("Websocket ERROR: " + error.message));
         }
+
+        connection.onclose = () => {
+            console.error(colors.dim.red('Websocket to LiveChess disconnected'));
+            //Clear the value of current serial number this serves as a diconnected status
+            this.currentSerialnr = 0;
+            //Set connection state to false
+            this.isLiveChessConnected = false;
+        };
 
         connection.onmessage = e => {
             if (verbose) console.log(colors.dim.magenta('Websocket onmessage with data:' + e.data));
@@ -61,14 +85,14 @@ class BoardManager extends EventEmitter {
                 console.log(boards[0].serialnr)
                 //TODO we need to be able to handle more than one board
                 //Update the base subscription message with the serial number
-                var serial = boards[0].serialnr;
-                subscription.param.param.serialnr = serial;
-                if (verbose) console.log(colors.dim.magenta('Websocket onmessage[call]: board serial number updated to: ' + serial));
+                this.currentSerialnr = boards[0].serialnr;
+                subscription.param.param.serialnr = this.currentSerialnr;
+                if (verbose) console.log(colors.dim.magenta('Websocket onmessage[call]: board serial number updated to: ' + this.currentSerialnr));
                 if (verbose) console.log(colors.dim.magenta('Webscoket - about to send the following message \n' + JSON.stringify(subscription)));
                 connection.send(JSON.stringify(subscription))
                 //Check if the board is properly connected
                 if (boards[0].state != "ACTIVE") // "NOTRESPONDING"
-                    console.error(`Board with serial ${serial} is not properly connected. Please fix`);
+                    console.error(`Board with serial ${this.currentSerialnr} is not properly connected. Please fix`);
                 //Send setup with stating position
                 //const newChess = new Chess()
                 //this.setUp(newChess);
@@ -124,8 +148,6 @@ class BoardManager extends EventEmitter {
             }
         }
     }
-    currentGameColor = ''; //Public instance field to store the color being played with the board
-    board_lichess = new Chess(); //Public reference to the lichess board representation
 
     async setUp(chess) {
         var fen = await chess.fen()
@@ -140,10 +162,37 @@ class BoardManager extends EventEmitter {
                 }
             }
         }
+        //Wait until WebSocket is connected to send setup command
+        while (!this.isLiveChessConnected) {
+            await this.sleep(1000);
+        }
         if (verbose) console.log(colors.dim.magenta("setUp -: " + JSON.stringify(setupMessage)))
         connection.send(JSON.stringify(setupMessage))
         //Initialize chess.js localboard
         localBoard.load(chess.fen())
+    }
+
+    async connectionMonitorLoop() {
+        //Program ends after 20 re-connection attempts
+        for (let attempts = 0; attempts < 20; attempts++) {
+            do {
+                //Just sleep five seconds while there is a valid currentSerialnr
+                await this.sleep(5000);
+            }
+            while (this.currentSerialnr != 0 && this.isLiveChessConnected)
+            //currentSerialnr is 0 so still no connection to board. Retry
+            if (!this.isLiveChessConnected) {
+                console.warn("No connection to DGT Live Chess. Attempting re-connection. Attempt: " + attempts);
+                this.connectToLiveChess();
+            }
+            else {
+                //Websocket is fine but still no board detected
+                console.warn("Connection to DGT Live Chess is Fine but no board is detected. Attempting re-connection. Attempt: " + attempts);
+                connection.send('{"id":1,"call":"eboards"}');
+            }
+        }
+        console.error("No connection to DGT Live Chess after maximum number of attempts (" + attempts + "). Exiting application");
+        process.exit(0); //Success
     }
 
     async boardMove(start, current) {
