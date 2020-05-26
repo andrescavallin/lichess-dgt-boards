@@ -35,6 +35,7 @@ var verbose = Boolean(nconf.get('verbose'));; //Verbose on or off
 var announceAllMoves = Boolean(nconf.get('announceAllMoves'));;; //Announce moves for both players or only the opponents
 const announceMoveFormat = nconf.get('announceMoveFormat');
 const keywords = nconf.get('keywords');
+const keywordsBase = ["K", "Q", "R", "B", "N", "P", "x", "+", "#", "(=)", "O-O", "O-O-O", "w", "b", "wins by", "timeout", "resignation"]
 
 /**
  * GLOBAL VATIABLES
@@ -467,8 +468,8 @@ function getLastMove(gameId) {
 
         if (announceMoveFormat.toLowerCase() == "san" && gameChessBoardMap.get(gameId).history().length > 0) {
             //Last move came from Lichess use the last game state . Even if move is played on board, we will wait until it comes from lichess
-            var lastSAN = gameChessBoardMap.get(gameId).history({ verbose: true })[gameChessBoardMap.get(gameId).history().length];
-            return { player: ( lastSAN.color == "w" ? "white" : "black" ), move: lastSAN.san, by: gameInfo[( lastSAN.color == "w" ? "white" : "black" )].id };
+            var lastSAN = gameChessBoardMap.get(gameId).history({ verbose: true })[gameChessBoardMap.get(gameId).history().length - 1];
+            return { player: (lastSAN.color == "w" ? "white" : "black"), move: lastSAN.san, by: gameInfo[(lastSAN.color == "w" ? "white" : "black")].id };
         }
         else {
             //This is the original code that does not used chess.js objects and can be used to get the UCI move but not SAN.
@@ -546,7 +547,7 @@ async function mainLoop() {
         //This means event stream is not connected
         console.warn("No connection to event stream. Attempting re-connection. Attempt: " + attempts);
     }
-    console.error("No connection to event stream after maximum number of attempts (" + attempts + "). Exiting application");
+    console.error("No connection to event stream after maximum number of attempts 20. Exiting application");
     process.exit(0); //Success
 }
 
@@ -627,8 +628,6 @@ async function keyboardInputHandler() {
 }
 
 function announcePlay(lastMove, wtime, btime) {
-
-
     if (lastMove.player == 'white') {
         console.log(colors.bgWhite.black(
             figlet.textSync('  ' + lastMove.move + '  ', { font: 'univers', horizontalLayout: 'full' })
@@ -643,7 +642,13 @@ function announcePlay(lastMove, wtime, btime) {
     }
     //tts.say(lastMove.player);
     //Now play it using text to speech library
-    tts.say(lastMove.move);
+    if (announceMoveFormat.toLowerCase() == "san") {
+
+        tts.say(raplaceKeywords(lastMove.move));
+    }
+    else {
+        tts.say(lastMove.move);
+    }
 }
 
 function announceWinner(winner, status, message) {
@@ -882,7 +887,7 @@ function connectToBoardEvents() {
         // Todo: Send a message showing the wrong adjustment made
         if (verbose) console.log(colors.dim.grey(`connectToBoardEvents - Received invalidAdjust event from Board: ${JSON.stringify(move)}`));
         //Inform user
-        tts.say('Incorrect, move was');
+        tts.say('Incorrect the move was');
         await sleep(1000);
         //Repeat last game state announcement
         var gameState = gameStateMap.get(currentGameId);
@@ -930,7 +935,18 @@ async function validateAndSendBoardMove(boardMove) {
     sendMove(currentGameId, command);
 }
 
-
+function raplaceKeywords(sanMove)
+{
+    var extendedSanMove = sanMove;
+    for (let i = 0; i < keywordsBase.length; i++) {
+        try {
+        extendedSanMove = extendedSanMove.replace(keywordsBase[i],' ' + keywords[keywordsBase[i]] + ' ');
+        } catch (error) {
+            console.log(`raplaceKeywords - Error replacing keyword. ${keywordsBase[i]} . ${Error(error).message}`.red);
+        }
+    }
+    return extendedSanMove;
+}
 
 
 /**

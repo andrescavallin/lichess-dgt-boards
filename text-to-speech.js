@@ -37,6 +37,7 @@ var verbose = Boolean(nconf.get('verbose'));; //Verbose on or off
 const voices = nconf.get('availableVoices');
 const voice = voices[nconf.get('voice')];
 const audioFormat = nconf.get('audioFormat');
+const keywords = nconf.get('keywords');
 
 /**
  * GLOBAL VATIABLES
@@ -55,7 +56,8 @@ module.exports = {
             lastText = text;
 
         //Split phrase to have fewer audio files
-        text.split(' ').forEach(word => {
+        //text.split(' ').forEach(word => {
+        wordArray(text).forEach(word => {
             if (word.length > 0 && word != " ") {
                 //Now attempt to generate the audio file and play it
                 try {
@@ -72,7 +74,7 @@ module.exports = {
                                 username: 'apikey',
                                 password: nconf.get('Watson_APIKEY')
                             },
-                            data: { text: word }
+                            data: { text: (hasNumber(word)) ? '<speak version="1.0"><prosody rate="slow">' + word + '</prosody></speak>' : word }
                         })
                             .then(function (response) {
                                 try {
@@ -147,8 +149,8 @@ function syncPlay(path) {
     }
 
     //This semaphore will prevent overlapping of audio. The acquire will be released after audio is played because it is a sync spawn
-    try {
-        sem.take(function () {
+    sem.take(function () {
+        try {
             if (verbose) console.log(colors.dim.cyan('Semaphore acquired. ' + Date.now()));
             //Use spawnSync to block execution until audio finished playing.
             //This will prevent audio overlaping
@@ -157,15 +159,51 @@ function syncPlay(path) {
                 console.log(colors.dim.cyan(`Finished executing ${playerPath} for audio ${path}. Output:`));
                 console.log(colors.dim.blue(player.stderr.toString().trim()));
             }
-        });
+        }
+        catch (error) {
+            console.log(colors.dim.cyan(`Error spawning ${playerPath} for audio ${path}. ${error.message}`));
+        }
+        finally {
+            //Wait a little bit before releasing the semaphore since this may cause problems
+            setTimeout(sem.leave, 50)
+            //sem.leave();
+            if (verbose) console.log(colors.dim.cyan('Semaphore released. ' + Date.now()));
+        }
+    });
+}
+
+/**
+ * Return true if the string contains at least one numeric character
+ * @param {string} myString 
+ */
+function hasNumber(myString) {
+    return /\d/.test(myString);
+}
+
+function wordArray(text) {
+    var wordArray = text.split(' ');
+    var myArray = new Array;
+    var phrase = '';
+    for (let i = 0; i < wordArray.length; i++) {
+        //Check if has a number. If it has it must be its own word
+        if (hasNumber(wordArray[i])) {
+            //Push previos phrase into Array
+            if (phrase != '') {
+                myArray.push(phrase.trim());
+            }
+            //Push this move as separate prhase into Array
+            myArray.push(wordArray[i]);
+            //Clear prhase
+            phrase = '';
+        }
+        else if (wordArray[i].length > 0 && wordArray[i] != ' ') {
+            //Since this is not a square keep adding this to the prhase
+            phrase += ' ' + wordArray[i];
+        }
     }
-    catch (error) {
-        console.log(colors.dim.cyan(`Error spawning ${playerPath} for audio ${path}. ${error.message}`));
+    //Push last phrase into Array if any
+    if (phrase != '') {
+        myArray.push(phrase.trim());
     }
-    finally {
-        //Wait a little bit before releasing the semaphore since this may cause problems
-        setTimeout(sem.leave, 200)
-        //sem.leave();
-        if (verbose) console.log(colors.dim.cyan('Semaphore released. ' + Date.now()));
-    }
+    return myArray;
 }

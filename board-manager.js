@@ -197,7 +197,7 @@ class BoardManager extends EventEmitter {
                 connection.send('{"id":1,"call":"eboards"}');
             }
         }
-        console.error("No connection to DGT Live Chess after maximum number of attempts (" + attempts + "). Exiting application");
+        console.error("No connection to DGT Live Chess after maximum number of attempts 20. Exiting application");
         process.exit(0); //Success
     }
 
