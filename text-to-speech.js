@@ -47,67 +47,75 @@ module.exports = {
     say: (text) => {
         //Check if the text is the same as the last one, if so, skip this play
         if (text == lastText) {
-            if (verbose) console.log(colors.dim.cyan(`Text: '${text}' is the same as the last Text received. Will be skipped.`));
-            return;
+            if (verbose) console.log(colors.dim.cyan(`Text: '${text}' is the same as the last Text received.`));
+            //return;
+            //Don't return since with SAN this can be very common. Wee need to know the color of the player to prevent real duplicates
         }
         else
             lastText = text;
-        //Now attempt to generate the audio file and play it
-        try {
-            var path = "./audio/" + text + "_" + voice + "." + audioFormat;
-            if (!fs.existsSync(path)) {
-                //File does not exists, generate using IBM Whatson TTS
-                axios({
-                    method: "post",
-                    url: "https://api.us-south.text-to-speech.watson.cloud.ibm.com/instances/89a85b60-d9e8-4d3d-b612-d941d032182d/v1/synthesize",
-                    params: { voice: voice },
-                    responseType: "stream",
-                    headers: { Accept: 'audio/' + audioFormat },
-                    auth: {
-                        username: 'apikey',
-                        password: nconf.get('Watson_APIKEY')
-                    },
-                    data: { text: text }
-                })
-                    .then(function (response) {
-                        try {
-                            if (response.status == 200 || response.status == 201) {
-                                response.data.pipe(fs.createWriteStream(path));
-                                const stream = response.data;
-                                stream.on('end', () => {
-                                    //Download finished;
-                                    if (verbose) console.log(colors.dim.cyan(path + " finished downloading."));
-                                    //At this moment the file should exists
-                                    //playOnProcess(path)
-                                    //syncPlay(path);
-                                    //Wait 100 milliseconds to make sure file is closed
-                                    setTimeout(function () {syncPlay(path); }, 100);
-                                });
-                            }
-                            else {
-                                console.log('TTS say failed with ' + response.status + ' ' + response.statusText);
-                            }
 
-                        }
-                        catch (error) {
-                            console.error(error);
-                        }
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                        if (error.response)
-                            console.log(error.response.data);
-                    });
-            }
-            else {
-                // File is laready downloaded, just play it
-                //playOnProcess(path);
-                syncPlay(path);
+        //Split phrase to have fewer audio files
+        text.split(' ').forEach(word => {
+            if (word.length > 0 && word != " ") {
+                //Now attempt to generate the audio file and play it
+                try {
+                    var path = "./audio/" + word + "_" + voice + "." + audioFormat;
+                    if (!fs.existsSync(path)) {
+                        //File does not exists, generate using IBM Whatson TTS
+                        axios({
+                            method: "post",
+                            url: "https://api.us-south.text-to-speech.watson.cloud.ibm.com/instances/89a85b60-d9e8-4d3d-b612-d941d032182d/v1/synthesize",
+                            params: { voice: voice },
+                            responseType: "stream",
+                            headers: { Accept: 'audio/' + audioFormat },
+                            auth: {
+                                username: 'apikey',
+                                password: nconf.get('Watson_APIKEY')
+                            },
+                            data: { text: word }
+                        })
+                            .then(function (response) {
+                                try {
+                                    if (response.status == 200 || response.status == 201) {
+                                        response.data.pipe(fs.createWriteStream(path));
+                                        const stream = response.data;
+                                        stream.on('end', () => {
+                                            //Download finished;
+                                            if (verbose) console.log(colors.dim.cyan(path + " finished downloading."));
+                                            //At this moment the file should exists
+                                            //playOnProcess(path)
+                                            //syncPlay(path);
+                                            //Wait 100 milliseconds to make sure file is closed
+                                            setTimeout(function () { syncPlay(path); }, 100);
+                                        });
+                                    }
+                                    else {
+                                        console.log('TTS say failed with ' + response.status + ' ' + response.statusText);
+                                    }
+
+                                }
+                                catch (error) {
+                                    console.error(error);
+                                }
+                            })
+                            .catch(function (error) {
+                                console.log(error);
+                                if (error.response)
+                                    console.log(error.response.data);
+                            });
+                    }
+                    else {
+                        // File is laready downloaded, just play it
+                        //playOnProcess(path);
+                        syncPlay(path);
+                    }
+                }
+                catch (error) {
+                    console.error(error)
+                }
             }
         }
-        catch (error) {
-            console.error(error)
-        }
+        );
     }
 };
 

@@ -25,13 +25,16 @@ nconf.defaults({
     "baseURL": "https://lichess.org",
     "personalToken": "",
     "verbose": false,
-    "announceAllMoves": false
+    "announceAllMoves": false,
+    "announceMoveFormat": "uci"
 });
 const baseURL = nconf.get('baseURL');
 //axios.defaults.proxy = { host: "127.0.0.1", port:8888}
 const personalToken = nconf.get('personalToken');
 var verbose = Boolean(nconf.get('verbose'));; //Verbose on or off
 var announceAllMoves = Boolean(nconf.get('announceAllMoves'));;; //Announce moves for both players or only the opponents
+const announceMoveFormat = nconf.get('announceMoveFormat');
+const keywords = nconf.get('keywords');
 
 /**
  * GLOBAL VATIABLES
@@ -284,12 +287,12 @@ function connectToGameStream(gameId) {
                                 gameInfoMap.set(gameId, data);
                                 //Store game state on the gameStateMap dictionary collection
                                 gameStateMap.set(gameId, data.state);
-                                //Log the state. Note that we are doing this after storing the state
+                                //Update the ChessBoard to the ChessBoard Map
+                                initializeChessBoard(gameId, data);
+                                //Log the state. Note that we are doing this after storing the state and initializing the chess.js board
                                 logGameState(gameId);
                                 //Show prompt
                                 console.log('Enter command and press enter >');
-                                //Update the ChessBoard to the ChessBoard Map
-                                initializeChessBoard(gameId, data);
                                 //Call chooseCurrentGame to determine if this stream will be the new current game
                                 chooseCurrentGame();
                             }
@@ -299,7 +302,7 @@ function connectToGameStream(gameId) {
                                 updateChessBoard(gameId, gameStateMap.get(gameId), data);
                                 //Update game state with most recent state
                                 gameStateMap.set(gameId, data);
-                                //Log the state. Note that we are doing this after storing the state
+                                //Log the state. Note that we are doing this after storing the state and updating the chess.js board
                                 logGameState(gameId);
                                 //Show prompt
                                 console.log('Enter command and press enter >');
@@ -428,17 +431,21 @@ function logGameState(gameId) {
                 }
                 break;
             case "outoftime":
-                announceWinner(gameState.winner, 'flag', gameState.winner + ' wins by timeout');
+                //announceWinner(gameState.winner, 'flag', gameState.winner + ' wins by timeout');
+                announceWinner(keywords[gameState.winner.charAt(0)], 'flag', keywords[gameState.winner.charAt(0)] + ' ' + keywords['wins by'] + ' ' + keywords['timeout']);
                 break;
             case "resign":
                 var winner = gameState.winner;
-                announceWinner(gameState.winner, 'resign', gameState.winner + ' wins by resignation');
+                //announceWinner(gameState.winner, 'resign', gameState.winner + ' wins by resignation');
+                announceWinner(keywords[gameState.winner.charAt(0)], 'resign', keywords[gameState.winner.charAt(0)] + ' ' + keywords['wins by'] + ' ' + keywords['resignation']);
                 break;
             case "mate":
-                announceWinner(lastMove.player, 'mate', lastMove.player + ' wins by checkmate');
+                //announceWinner(lastMove.player, 'mate', lastMove.player + ' wins by checkmate');
+                announceWinner(keywords[lastMove.player.charAt(0)], 'mate', keywords[lastMove.player.charAt(0)] + ' ' + keywords['wins by'] + ' ' + keywords['#']);
                 break;
             case "draw":
-                announceWinner('draw', 'draw', 'game ends in draw');
+                //announceWinner('draw', 'draw', 'game ends in draw');
+                announceWinner('draw', 'draw', keywords['(=)']);
                 break;
             default:
                 console.log(`Unknown status received: ${gameState.status}`.red);
@@ -457,15 +464,24 @@ function getLastMove(gameId) {
     if (gameStateMap.has(gameId) && gameInfoMap.has(gameId)) {
         var gameInfo = gameInfoMap.get(gameId);
         var gameState = gameStateMap.get(gameId);
-        if (String(gameState.moves).length > 1) {
-            moves = gameState.moves.split(' ');
-            if (moves.length % 2 == 0)
-                return { player: 'black', move: moves[moves.length - 1], by: gameInfo.black.id };
-            else
-                return { player: 'white', move: moves[moves.length - 1], by: gameInfo.white.id };
+
+        if (announceMoveFormat.toLowerCase() == "san" && gameChessBoardMap.get(gameId).history().length > 0) {
+            //Last move came from Lichess use the last game state . Even if move is played on board, we will wait until it comes from lichess
+            var lastSAN = gameChessBoardMap.get(gameId).history({ verbose: true })[gameChessBoardMap.get(gameId).history().length];
+            return { player: ( lastSAN.color == "w" ? "white" : "black" ), move: lastSAN.san, by: gameInfo[( lastSAN.color == "w" ? "white" : "black" )].id };
         }
         else {
-            return { player: 'none', move: 'none' };
+            //This is the original code that does not used chess.js objects and can be used to get the UCI move but not SAN.
+            if (String(gameState.moves).length > 1) {
+                moves = gameState.moves.split(' ');
+                if (moves.length % 2 == 0)
+                    return { player: 'black', move: moves[moves.length - 1], by: gameInfo.black.id };
+                else
+                    return { player: 'white', move: moves[moves.length - 1], by: gameInfo.white.id };
+            }
+            else {
+                return { player: 'none', move: 'none' };
+            }
         }
     }
 }
@@ -611,6 +627,8 @@ async function keyboardInputHandler() {
 }
 
 function announcePlay(lastMove, wtime, btime) {
+
+
     if (lastMove.player == 'white') {
         console.log(colors.bgWhite.black(
             figlet.textSync('  ' + lastMove.move + '  ', { font: 'univers', horizontalLayout: 'full' })
@@ -922,7 +940,7 @@ async function validateAndSendBoardMove(boardMove) {
 start();
 connectToBoardEvents();  //Connect to events from DGT Board
 getProfile();
-mainLoop(); 
+mainLoop();
 keyboardInputHandler(); //This is to allow moves to be entered by keyboard
 //boardInputHandler(); //start monitoring moves one at a time instead of by events
 //dgtBoard.playRandom(); //Emulates a board by playing randomly
