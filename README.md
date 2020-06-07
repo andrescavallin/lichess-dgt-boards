@@ -21,7 +21,16 @@
 
 > The program works by connecting to Lichess via the Board API set of APIs, and to the DGT Board by opening a websocket connecting to the free LiveChess 2.2 which is the software DGT developed to broadcast tournaments. When moves are played on the board the program will detect those and send them to Lichess, and moves played on lichess by your opponent will be announced on screen and by audio, and they need to be executed on the board manually. Text to speech is provided by IBM Watson, and several languages are supported.
 
-**Requirements**
+---
+
+## Table of Contents
+
+- [Requirements](#Requirements)
+- [Configuration](#Configuration)
+- [License](#license)
+
+---
+### Requirements
 
 - DGT Board
     - Any **DGT Electronic Board** including Smart Board, Blue Tooth, USB and Serial Boards [https://www.digitalgametechnology.com/index.php/products/electronic-boards]
@@ -31,12 +40,12 @@
     - A **Lichess.org** online account 
     [https://lichess.org/signup]
     - A Lichess **API Token** with the following scopes 
-    [https://lichess.org/account/oauth/token]
+    [https://lichess.org/account/oauth/token/create?scopes[]=board:play&scopes[]=preference:read&scopes[]=challenge:read&scopes[]=challenge:write&scopes[]=msg:write&description=DGT+Board]
         - Play games with the board API
         - Read preferences
-        - Read incoming challenges
-        - Create, accept, decline challenges
-        - Send private messages to other players
+        - Read incoming challenges (coming soon)
+        - Create, accept, decline challenges (coming soon)
+        - Send private messages to other players (coming soon)
     - oAuth not currently supported, only API Token. See Above
 - This Application
     - **Node.js** v12.16.2 LTS or Above 
@@ -61,58 +70,22 @@
 [![Build Status](http://img.shields.io/travis/badges/badgerbadgerbadger.svg?style=flat-square)](https://travis-ci.org/badges/badgerbadgerbadger) [![Dependency Status](http://img.shields.io/gemnasium/badges/badgerbadgerbadger.svg?style=flat-square)](https://gemnasium.com/badges/badgerbadgerbadger) [![Coverage Status](http://img.shields.io/coveralls/badges/badgerbadgerbadger.svg?style=flat-square)](https://coveralls.io/r/badges/badgerbadgerbadger) [![Code Climate](http://img.shields.io/codeclimate/github/badges/badgerbadgerbadger.svg?style=flat-square)](https://codeclimate.com/github/badges/badgerbadgerbadger) [![Github Issues](http://githubbadges.herokuapp.com/badges/badgerbadgerbadger/issues.svg?style=flat-square)](https://github.com/badges/badgerbadgerbadger/issues) [![Pending Pull-Requests](http://githubbadges.herokuapp.com/badges/badgerbadgerbadger/pulls.svg?style=flat-square)](https://github.com/badges/badgerbadgerbadger/pulls) [![Gem Version](http://img.shields.io/gem/v/badgerbadgerbadger.svg?style=flat-square)](https://rubygems.org/gems/badgerbadgerbadger) [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org) [![Badges](http://img.shields.io/:badges-9/9-ff6799.svg?style=flat-square)](https://github.com/badges/badgerbadgerbadger)
 
 
-***INSERT ANOTHER GRAPHIC HERE***
-
-[![INSERT YOUR GRAPHIC HERE](http://i.imgur.com/dt8AUb6.png)]()
-
-- Most people will glance at your `README`, *maybe* star it, and leave
-- Ergo, people should understand instantly what your project is about based on your repo
-
-> Tips
-
-- HAVE WHITE SPACE
-- MAKE IT PRETTY
-- GIFS ARE REALLY COOL
-
-> GIF Tools
-
-- Use <a href="http://recordit.co/" target="_blank">**Recordit**</a> to create quicks screencasts of your desktop and export them as `GIF`s.
-- For terminal sessions, there's <a href="https://github.com/chjj/ttystudio" target="_blank">**ttystudio**</a> which also supports exporting `GIF`s.
-
-**Recordit**
-
-![Recordit GIF](http://g.recordit.co/iLN6A0vSD8.gif)
-
-**ttystudio**
-
-![ttystudio GIF](https://raw.githubusercontent.com/chjj/ttystudio/master/img/example.gif)
-
 ---
 
-## Table of Contents (Optional)
+## Configuration 
+> This a sample content of `config.json` that needs to be on the same path as the app.js file. All values are valid except for the `personalToken` and `Watson_APIKEY` that you need to obtain yourself and update this file.
 
-> If your `README` has a lot of info, section headers might be nice.
-
-- [Installation](#installation)
-- [Features](#features)
-- [Contributing](#contributing)
-- [Team](#team)
-- [FAQ](#faq)
-- [Support](#support)
-- [License](#license)
-
-
----
-
-## Example (Optional)
+config.json
 
 ```javascript
 {
   "baseURL": "https://lichess.org",
-  "personalToken": "xxxxyyyxxxyyyxxx",
-  "verbose": true,
-  "announceAllMoves": true,
-  "voice": "Michael",
+  "personalToken": "__Your Token__",
+  "verbose": false,
+  "announceAllMoves": false,
+  "announceMoveFormat": "san",
+  "splitWords": false,
+  "voice": "Allison",
   "availableVoices": {
     "Allison": "en-US_AllisonV3Voice",
     "Michael": "en-US_MichaelV3Voice",
@@ -121,114 +94,80 @@
     "Renee": "fr-FR_ReneeV3Voice",
     "Francesca": "it-IT_FrancescaV3Voice"
   },
-  "Watson_APIKEY": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcde-fghijklmnopq",
+  "Watson_APIKEY": "__Your APIKEY__",
   "audioFormat": "mp3",
-  "windowsAudioPlayer": "./audioplayer/cmdmp3/cmdmp3.exe"
+  "windowsAudioPlayer": "./audioplayer/cmdmp3/cmdmp3.exe",
+  "keywords": {
+    "K": "King",
+    "Q": "Queen",
+    "R": "Rook",
+    "B": "Bishop",
+    "N": "Knight",
+    "P": "Pawn",
+    "x": "Takes",
+    "+": "Check",
+    "#": "Checkmate",
+    "(=)": "Game ends in draw",
+    "O-O": "Castles kingside",
+    "O-O-O": "Castles queenside",
+    "white": "White",
+    "black": "Black",
+    "wins by": "wins by",
+    "timeout": "timeout",
+    "resignation": "resignation",
+    "illegal": "illegal",
+    "move": "move"
+  }
 }
 ```
+> Explanation of each value
 
----
+ - <span style="font-weight:bold">"baseURL": "https://lichess.org"</span><p>The base URL for Lichess. Use https://lichess.org unless you need to target development environments or your own Lichess fork.</p>
+ - <span style="font-weight:bold">"personalToken": "__Your Token__"</span> <p>This is your lichess token obtained from <a href="https://lichess.org/account/oauth/token/create?scopes[]=board:play&scopes[]=preference:read&scopes[]=challenge:read&scopes[]=challenge:write&scopes[]=msg:write&description=DGT+Board">Personal API access token</a></p>
+ - <span style="font-weight:bold">"verbose": false</span> <p>Set this as `false` unless you want to debug connectivity with lihcess or the DGT Board</p>
+ - <span style="font-weight:bold">"announceAllMoves": false</span> <p>When set to `false` will only announce moves from opponent, when set to `true`, will annouce all moves.</p>
+ - <span style="font-weight:bold">"announceMoveFormat": "san"</span> <p>Possible values are `san` and `uci` . San is nicer but will require more storage for Text To Speech since it includes the name the of the piece, while uci only includes origin and target squares</p>
+ - <span style="font-weight:bold">"splitWords": false</span> <p>When set to `true` the Text To Speech will generate separete audio file for the name of the pieces and the target squares, saving disk space. This will create a long pause between the name of the piece and the target square that may be a little bit annoying but acceptable. When set to `false` each san move will become an audio file </p>
+ - <span style="font-weight:bold">"voice": "Allison"</span> <p>The name of the Text To Speech persona used by IBM Watson for generating the audio file. The full list can be found at <a href="https://cloud.ibm.com/docs/text-to-speech?topic=text-to-speech-voices#voices">Languages and voices</a>. The voice needs to be added to the object availableVoices that has both the short name and the IBM Watson full name. Like this:</p>
+ "availableVoices": 
+    - "Allison": "en-US_AllisonV3Voice"
+    - "Michael": "en-US_MichaelV3Voice"
+    - "Sofia": "es-LA_SofiaV3Voice"
+    - "Enrique": "es-ES_EnriqueV3Voice"
+    - "Renee": "fr-FR_ReneeV3Voice"
+    - "Francesca": "it-IT_FrancescaV3Voice"
 
-## Installation
+ - <span style="font-weight:bold">"Watson_APIKEY": "__Your APIKEY__"</span> <p>We are not endorsing IBM Watson Text To Speech in any way, it is just the web service that we selected because of the free tier and because V3 personas sound really real. You will need to <a href="https://cloud.ibm.com/docs/text-to-speech">signup</a> and then you can request the API Key <a href="https://cloud.ibm.com/resources">here</a></p>
+ - <span style="font-weight:bold">"audioFormat": "mp3"</span><p>The MIME Type like `wav` or `mp3`. The full list of supported formats can be found at <a href="https://cloud.ibm.com/apidocs/text-to-speech#synthesize-audio">Audio formats (accept types)</a></p>
+ - <span style="font-weight:bold">"windowsAudioPlayer": "./audioplayer/cmdmp3/cmdmp3.exe"</span><p>On MacOS the command line audio player `afplay` is used. But on Windows a tool is needed. This value represents the path to the command line audio player tool. Remember to download this tool for Text To Speech to work on Windows when you want the audio to be played on the host machine.</p>
+ - <span style="font-weight:bold">"keywords": {...}</span><p>This object contains the english words what will be used to tranlate san moves into an announcement. If you want to use spanish for example, replace the values, as in this sample:</p>
 
-- All the `code` required to get started
-- Images of what it should look like
 
-### Clone
+```javascript
 
-- Clone this repo to your local machine using `https://github.com/fvcproductions/SOMEREPO`
+    "keywords": {
+        "K": "Rey",
+        "Q": "Dama",
+        "R": "Torre",
+        "B": "Alfil",
+        "N": "Caballo",
+        "P": "Peón",
+        "x": "Por",
+        "+": "Jaque",
+        "#": "Jaquemate",
+        "(=)": "Juego termina en Tablas",
+        "O-O": "Enroque corto",
+        "O-O-O": "Enroque largo",
+        "white": "Blancas",
+        "black": "Negras",
+        "wins by": "ganan por",
+        "timeout": "timeout",
+        "resignation": "dimisión",
+        "illegal": "incorrecta",
+        "move": "jugada"
+    }
 
-### Setup
-
-- If you want more syntax highlighting, format your code like this:
-
-> update and install this package first
-
-```shell
-$ brew update
-$ brew install fvcproductions
 ```
-
-> now install npm and bower packages
-
-```shell
-$ npm install
-$ bower install
-```
-
-- For all the possible languages that support syntax highlithing on GitHub (which is basically all of them), refer <a href="https://github.com/github/linguist/blob/master/lib/linguist/languages.yml" target="_blank">here</a>.
-
----
-
-## Features
-## Usage (Optional)
-## Documentation (Optional)
-## Tests (Optional)
-
-- Going into more detail on code and technologies used
-- I utilized this nifty <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank">Markdown Cheatsheet</a> for this sample `README`.
-
----
-
-## Contributing
-
-> To get started...
-
-### Step 1
-
-- **Option 1**
-    - 🍴 Fork this repo!
-
-- **Option 2**
-    - 👯 Clone this repo to your local machine using `https://github.com/joanaz/HireDot2.git`
-
-### Step 2
-
-- **HACK AWAY!** 🔨🔨🔨
-
-### Step 3
-
-- 🔃 Create a new pull request using <a href="https://github.com/joanaz/HireDot2/compare/" target="_blank">`https://github.com/joanaz/HireDot2/compare/`</a>.
-
----
-
-## Team
-
-> Or Contributors/People
-
-| <a href="http://fvcproductions.com" target="_blank">**FVCproductions**</a> | <a href="http://fvcproductions.com" target="_blank">**FVCproductions**</a> | <a href="http://fvcproductions.com" target="_blank">**FVCproductions**</a> |
-| :---: |:---:| :---:|
-| [![FVCproductions](https://avatars1.githubusercontent.com/u/4284691?v=3&s=200)](http://fvcproductions.com)    | [![FVCproductions](https://avatars1.githubusercontent.com/u/4284691?v=3&s=200)](http://fvcproductions.com) | [![FVCproductions](https://avatars1.githubusercontent.com/u/4284691?v=3&s=200)](http://fvcproductions.com)  |
-| <a href="http://github.com/fvcproductions" target="_blank">`github.com/fvcproductions`</a> | <a href="http://github.com/fvcproductions" target="_blank">`github.com/fvcproductions`</a> | <a href="http://github.com/fvcproductions" target="_blank">`github.com/fvcproductions`</a> |
-
-- You can just grab their GitHub profile image URL
-- You should probably resize their picture using `?s=200` at the end of the image URL.
-
----
-
-## FAQ
-
-- **How do I do *specifically* so and so?**
-    - No problem! Just do this.
-
----
-
-## Support
-
-Reach out to me at one of the following places!
-
-- Website at <a href="http://fvcproductions.com" target="_blank">`fvcproductions.com`</a>
-- Twitter at <a href="http://twitter.com/fvcproductions" target="_blank">`@fvcproductions`</a>
-- Insert more social links here.
-
----
-
-## Donations (Optional)
-
-- You could include a <a href="https://cdn.rawgit.com/gratipay/gratipay-badge/2.3.0/dist/gratipay.png" target="_blank">Gratipay</a> link as well.
-
-[![Support via Gratipay](https://cdn.rawgit.com/gratipay/gratipay-badge/2.3.0/dist/gratipay.png)](https://gratipay.com/fvcproductions/)
-
 
 ---
 
@@ -237,4 +176,4 @@ Reach out to me at one of the following places!
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
 
 - **[MIT license](http://opensource.org/licenses/mit-license.php)**
-- Copyright 2015 © <a href="http://fvcproductions.com" target="_blank">FVCproductions</a>.
+- Developed during April - June 2020
