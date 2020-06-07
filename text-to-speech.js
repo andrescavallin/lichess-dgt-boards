@@ -20,6 +20,8 @@ nconf.argv()
     .env()
     .file({ file: './config.json' });
 nconf.defaults({
+    "verbose": false,    
+    "splitWords": true,
     "voice": "Michael",
     "availableVoices": {
         "Allison": "en-US_AllisonV3Voice",
@@ -34,10 +36,13 @@ nconf.defaults({
     "windowsAudioPlayer": "./audioplayer/mpg123/mpg123.exe"
 });
 var verbose = Boolean(nconf.get('verbose'));; //Verbose on or off
+const splitWords = Boolean(nconf.get('splitWords'));
 const voices = nconf.get('availableVoices');
 const voice = voices[nconf.get('voice')];
 const audioFormat = nconf.get('audioFormat');
-const keywords = nconf.get('keywords');
+const Watson_APIKEY = nconf.get('Watson_APIKEY');
+const windowsAudioPlayer = nconf.get('windowsAudioPlayer');
+
 
 /**
  * GLOBAL VATIABLES
@@ -72,7 +77,7 @@ module.exports = {
                             headers: { Accept: 'audio/' + audioFormat },
                             auth: {
                                 username: 'apikey',
-                                password: nconf.get('Watson_APIKEY')
+                                password: Watson_APIKEY
                             },
                             data: { text: (hasNumber(word)) ? '<speak version="1.0"><prosody rate="slow">' + word + '</prosody></speak>' : word }
                         })
@@ -143,7 +148,7 @@ function syncPlay(path) {
     var playerPath;
     //Determine which player to use depending on operating system
     if (os.platform() === 'win32') {
-        playerPath = nconf.get('windowsAudioPlayer');
+        playerPath = windowsAudioPlayer;
     } else if (os.platform() === 'darwin') {
         playerPath = 'afplay';
     }
@@ -181,8 +186,14 @@ function hasNumber(myString) {
 }
 
 function wordArray(text) {
-    var wordArray = text.split(' ');
     var myArray = new Array;
+    if (!splitWords) {
+        //This will use more disk space but will sound much better
+        //Just return a single item array with the whole text.
+        myArray.push(text.trim());
+        return myArray;
+    }
+    var wordArray = text.split(' ');    
     var phrase = '';
     for (let i = 0; i < wordArray.length; i++) {
         //Check if has a number. If it has it must be its own word

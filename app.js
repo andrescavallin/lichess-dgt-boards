@@ -35,7 +35,7 @@ var verbose = Boolean(nconf.get('verbose'));; //Verbose on or off
 var announceAllMoves = Boolean(nconf.get('announceAllMoves'));;; //Announce moves for both players or only the opponents
 const announceMoveFormat = nconf.get('announceMoveFormat');
 const keywords = nconf.get('keywords');
-const keywordsBase = ["K", "Q", "R", "B", "N", "P", "x", "+", "#", "(=)", "O-O", "O-O-O", "w", "b", "wins by", "timeout", "resignation"]
+const keywordsBase = ["K", "Q", "R", "B", "N", "P", "x", "+", "#", "(=)", "O-O", "O-O-O", "white", "black", "wins by", "timeout", "resignation"]
 
 /**
  * GLOBAL VATIABLES
@@ -433,16 +433,16 @@ function logGameState(gameId) {
                 break;
             case "outoftime":
                 //announceWinner(gameState.winner, 'flag', gameState.winner + ' wins by timeout');
-                announceWinner(keywords[gameState.winner.charAt(0)], 'flag', keywords[gameState.winner.charAt(0)] + ' ' + keywords['wins by'] + ' ' + keywords['timeout']);
+                announceWinner(keywords[gameState.winner], 'flag', keywords[gameState.winner] + ' ' + keywords['wins by'] + ' ' + keywords['timeout']);
                 break;
             case "resign":
                 var winner = gameState.winner;
                 //announceWinner(gameState.winner, 'resign', gameState.winner + ' wins by resignation');
-                announceWinner(keywords[gameState.winner.charAt(0)], 'resign', keywords[gameState.winner.charAt(0)] + ' ' + keywords['wins by'] + ' ' + keywords['resignation']);
+                announceWinner(keywords[gameState.winner], 'resign', keywords[gameState.winner] + ' ' + keywords['wins by'] + ' ' + keywords['resignation']);
                 break;
             case "mate":
                 //announceWinner(lastMove.player, 'mate', lastMove.player + ' wins by checkmate');
-                announceWinner(keywords[lastMove.player.charAt(0)], 'mate', keywords[lastMove.player.charAt(0)] + ' ' + keywords['wins by'] + ' ' + keywords['#']);
+                announceWinner(keywords[lastMove.player], 'mate', keywords[lastMove.player] + ' ' + keywords['wins by'] + ' ' + keywords['#']);
                 break;
             case "draw":
                 //announceWinner('draw', 'draw', 'game ends in draw');

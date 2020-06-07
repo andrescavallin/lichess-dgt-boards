@@ -91,7 +91,7 @@ class BoardManager extends EventEmitter {
                 if (verbose) console.log(colors.dim.magenta('Webscoket - about to send the following message \n' + JSON.stringify(subscription)));
                 connection.send(JSON.stringify(subscription))
                 //Check if the board is properly connected
-                if (boards[0].state != "ACTIVE") // "NOTRESPONDING" "INACTIVE"
+                if (boards[0].state != "ACTIVE" && boards[0].state != "INACTIVE") // "NOTRESPONDING" || "DELAYED"
                     console.error(`Board with serial ${this.currentSerialnr} is not properly connected. Please fix`);
                 //Send setup with stating position
                 //const newChess = new Chess()
