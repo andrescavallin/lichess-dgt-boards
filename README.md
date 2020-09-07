@@ -1,8 +1,9 @@
 > <span style="color:red;font-weight:bold">NOTE:</span> A newer browser version to  play without installing any additional software and with a simpler configuration has been created. Just visit this link for that version:</br>
 https://andrescavallin.github.io/lichess-dgt-boards-browser/
-</br>
-Improvements will be made to the new browser version only. The GitHub project can be found here:
+
+>Improvements will be made to the new browser version only. The GitHub project can be found here:
 https://github.com/andrescavallin/lichess-dgt-boards-browser
+
 ---
 
 
