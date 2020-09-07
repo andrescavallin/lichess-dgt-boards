@@ -1,6 +1,7 @@
 {
   "baseURL": "https://lichess.org",
   "personalToken": "__Your Token__",
+  "liveChessURL": "ws://localhost:1982/api/v1.0",
   "verbose": false,
   "announceAllMoves": false,
   "announceMoveFormat": "san",
