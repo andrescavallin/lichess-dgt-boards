@@ -1,3 +1,11 @@
+> <span style="color:red;font-weight:bold">NOTE:</span> A newer browser version to  play without installing any additional software and with a simpler configuration has been created. Just visit this link for that version:</br>
+https://andrescavallin.github.io/lichess-dgt-boards-browser/
+</br>
+Improvements will be made to the new browser version only. The GitHub project can be found here:
+https://github.com/andrescavallin/lichess-dgt-boards-browser
+---
+
+
 <div id='wrapper' style='text-align: center;'>
     <div style='display: inline-block; vertical-align: middle;'>
         <a href="https://www.digitalgametechnology.com/index.php/products/electronic-boards">
@@ -13,6 +21,8 @@
 
 
 <!-- [![FVCproductions](https://avatars1.githubusercontent.com/u/4284691?v=3&s=200)](http://fvcproductions.com) -->
+
+
 
 # lichess-dgt-boards
 
